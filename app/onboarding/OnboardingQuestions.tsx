@@ -199,12 +199,12 @@ export function OnboardingQuestions() {
 
       await AsyncStorage.setItem('@mindset_onboarding', JSON.stringify(onboardingData));
 
-      // Navigate to the home screen
-      router.replace('/home');
+      // Navigate to the tabs
+      router.replace('/(tabs)');
     } catch (error) {
       console.error('Failed to save onboarding data:', error);
       // Still navigate even if save fails
-      router.replace('/home');
+      router.replace('/(tabs)');
     }
   };
 
