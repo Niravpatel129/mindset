@@ -2,13 +2,16 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   FadeIn,
   FadeOut,
   useAnimatedStyle,
+  useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withSpring,
@@ -47,79 +50,242 @@ function FloatingOrb({ index }: { index: number }) {
   );
 }
 
-// Define the API response type
-interface AudioProcessingResponse {
-  success: boolean;
-  message: string;
+// Individual wave line component
+function WaveLine({ delay }: { delay: number }) {
+  const animation = useSharedValue(1);
+
+  useEffect(() => {
+    animation.value = withRepeat(
+      withSequence(
+        withDelay(delay, withTiming(1.5, { duration: 500, easing: Easing.ease })),
+        withTiming(1, { duration: 500, easing: Easing.ease }),
+      ),
+      -1,
+      true,
+    );
+
+    return () => {
+      cancelAnimation(animation);
+    };
+  }, [delay]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleY: animation.value }],
+  }));
+
+  return <Animated.View style={[styles.waveLine, animatedStyle]} />;
 }
 
-// Mock API call
-const mockProcessAudio = (): Promise<AudioProcessingResponse> => {
-  return new Promise((resolve) => {
-    // Simulate API delay between 2-4 seconds
-    const delay = 2000 + Math.random() * 2000;
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: 'Why weren&apos;t you able to meet your goal today.',
-      });
-    }, delay);
-  });
+// Voice Wave component
+function VoiceWave() {
+  return (
+    <View style={styles.waveContainer}>
+      {[0, 1, 2, 3, 4].map((index) => (
+        <WaveLine key={index} delay={index * 100} />
+      ))}
+    </View>
+  );
+}
+
+// FadingText component for speech transcription
+function FadingText({ text }: { text: string }) {
+  const translateY = useSharedValue(0);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    translateY.value = withTiming(-100, {
+      duration: 2000,
+      easing: Easing.out(Easing.ease),
+    });
+    opacity.value = withTiming(0, {
+      duration: 2000,
+      easing: Easing.out(Easing.ease),
+    });
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View style={[styles.fadingTextContainer, animatedStyle]}>
+      <ThemedText numberOfLines={2} style={styles.fadingText}>
+        {text}
+      </ThemedText>
+    </Animated.View>
+  );
+}
+
+// Voice recognition implementations for different platforms
+const useVoiceRecognition = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcribedText, setTranscribedText] = useState('');
+  const recognitionRef = useRef<any>(null);
+
+  const onWeb = Platform.OS === 'web';
+
+  useEffect(() => {
+    if (onWeb) {
+      // Initialize Web Speech API
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        console.log('🎤 Initializing Web Speech API');
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'en-US';
+
+        // Add error handler
+        recognitionRef.current.onerror = (event: any) => {
+          console.error('Speech recognition error:', event.error);
+        };
+
+        // Add end handler
+        recognitionRef.current.onend = () => {
+          console.log('🎤 Web Speech recognition ended');
+        };
+      } else {
+        console.error('Web Speech API not supported in this browser');
+      }
+    } else {
+      // Initialize native voice recognition
+      const initNativeVoice = async () => {
+        try {
+          console.log('🎤 Initializing Native Voice API');
+          const Voice = (await import('@react-native-voice/voice')).default;
+          recognitionRef.current = Voice;
+
+          Voice.onSpeechError = (e: any) => {
+            console.error('Native Voice error:', e);
+          };
+
+          Voice.onSpeechEnd = () => {
+            console.log('🎤 Native Voice recognition ended');
+          };
+        } catch (e) {
+          console.error('Failed to initialize voice recognition:', e);
+        }
+      };
+      initNativeVoice();
+    }
+
+    return () => {
+      console.log('🎤 Cleaning up voice recognition');
+      if (recognitionRef.current) {
+        if (onWeb) {
+          recognitionRef.current.stop();
+        } else {
+          recognitionRef.current.destroy().then(recognitionRef.current.removeAllListeners);
+        }
+      }
+    };
+  }, [onWeb]);
+
+  const startRecording = async () => {
+    try {
+      if (!recognitionRef.current) {
+        throw new Error('Voice recognition not initialized');
+      }
+
+      setTranscribedText('');
+      console.log('🎤 Starting recording...');
+
+      if (onWeb) {
+        // Web implementation
+        recognitionRef.current.onresult = (event: any) => {
+          const results = event.results;
+          const lastResult = results[results.length - 1];
+          const transcript = lastResult[0].transcript.trim();
+          console.log('🗣️ (Web) Interim result:', transcript);
+
+          if (lastResult.isFinal) {
+            setTranscribedText(transcript);
+            console.log('🗣️ (Web) Final result:', transcript);
+          }
+        };
+
+        recognitionRef.current.start();
+      } else {
+        // Native implementation
+        await recognitionRef.current.start('en-US');
+        recognitionRef.current.onSpeechResults = (e: { value?: string[] }) => {
+          const text = (e.value?.[0] || '').trim();
+          setTranscribedText(text);
+          console.log('🗣️ (Native) User said:', text);
+        };
+      }
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      setIsRecording(false);
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      console.log('🎤 Stopping recording...');
+      if (!recognitionRef.current) return false;
+
+      if (onWeb) {
+        recognitionRef.current.stop();
+      } else {
+        await recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+      console.log('🎤 Recording stopped successfully');
+      return true;
+    } catch (error) {
+      console.error('Failed to stop recording:', error);
+      setIsRecording(false);
+      return false;
+    }
+  };
+
+  return {
+    isRecording,
+    transcribedText,
+    startRecording,
+    stopRecording,
+  };
 };
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const [isRecording, setIsRecording] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [showFollowUp, setShowFollowUp] = useState(false);
-  const [dots, setDots] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showTranscription, setShowTranscription] = useState(false);
 
-  // Animate the dots
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (isProcessing) {
-      interval = setInterval(() => {
-        setDots((prev) => {
-          if (prev === '...') return '';
-          return prev + '.';
-        });
-      }, 500);
+  const { isRecording, transcribedText, startRecording, stopRecording } = useVoiceRecognition();
+  const recordingStartTime = useRef<number | null>(null);
+
+  const handleMicPress = async () => {
+    if (!isRecording) {
+      setShowTranscription(false);
+      recordingStartTime.current = Date.now();
+      await startRecording();
     } else {
-      setDots('');
+      setIsProcessing(true);
+      if (await stopRecording()) {
+        const duration = Date.now() - (recordingStartTime.current || 0);
+        console.log(`Recording duration: ${duration}ms`);
+        setShowWelcome(false);
+        setShowTranscription(true);
+        // Simulate processing delay
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        setShowFollowUp(true);
+      }
+      setIsProcessing(false);
     }
-    return () => clearInterval(interval);
-  }, [isProcessing]);
+  };
 
   const BUBBLE_BG_COLOR = 'rgba(255, 255, 255, 1)'; // Fully opaque white
 
   const micStyle = useAnimatedStyle(() => ({
     transform: [{ scale: withSpring(isRecording ? 1.1 : 1) }],
   }));
-
-  const handleMicPress = async () => {
-    if (!isRecording) {
-      // Start recording
-      setIsRecording(true);
-      setShowFollowUp(false);
-    } else {
-      // Stop recording and process
-      setIsRecording(false);
-      setIsProcessing(true);
-      setShowWelcome(false);
-
-      try {
-        const response = await mockProcessAudio();
-        if (response.success) {
-          setShowFollowUp(true);
-        }
-      } catch (error) {
-        console.error('Error processing audio:', error);
-      } finally {
-        setIsProcessing(false);
-      }
-    }
-  };
 
   return (
     <ThemedView style={styles.container}>
@@ -166,7 +332,7 @@ export default function ChatScreen() {
           >
             <View style={[styles.messageContent, { backgroundColor: BUBBLE_BG_COLOR }]}>
               <ThemedText style={styles.welcomeText}>
-                Hello Nehal! {'\n'}Did you feel you accomplished your goal today?
+                Hello Nehal!{'\n'}Did you feel you accomplished your goal today?
               </ThemedText>
             </View>
             <View style={[styles.chevronUp, { backgroundColor: BUBBLE_BG_COLOR }]} />
@@ -188,18 +354,26 @@ export default function ChatScreen() {
           </Animated.View>
         )}
 
-        {/* Listening/Processing Text */}
-        {(isRecording || isProcessing) && (
+        {/* Transcribed Text Animation */}
+        {showTranscription && transcribedText ? <FadingText text={transcribedText} /> : null}
+
+        {/* Listening/Processing Animation */}
+        {isRecording || isProcessing ? (
           <Animated.View
             entering={FadeIn.duration(300)}
             exiting={FadeOut.duration(300)}
             style={styles.listeningContainer}
           >
-            <ThemedText style={styles.listeningText}>
-              {isProcessing ? `Processing${dots}` : 'Listening...'}
-            </ThemedText>
+            {isRecording ? (
+              <>
+                <VoiceWave />
+                <ThemedText style={styles.listeningText}>Listening...</ThemedText>
+              </>
+            ) : (
+              <ThemedText style={styles.listeningText}>Processing...</ThemedText>
+            )}
           </Animated.View>
-        )}
+        ) : null}
 
         {/* Bottom Controls */}
         <View style={[styles.controls, { paddingBottom: insets.bottom + 20 }]}>
@@ -340,6 +514,20 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  waveContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+    marginBottom: 8,
+    gap: 3,
+  },
+  waveLine: {
+    width: 3,
+    height: 20,
+    backgroundColor: '#7666F9',
+    borderRadius: 2,
+  },
   listeningContainer: {
     position: 'absolute',
     bottom: 100,
@@ -351,5 +539,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#7666F9',
     fontWeight: '600',
+    marginTop: 8,
+  },
+  fadingTextContainer: {
+    position: 'absolute',
+    bottom: 160,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fadingText: {
+    fontSize: 16,
+    color: '#7666F9',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
