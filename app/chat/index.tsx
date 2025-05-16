@@ -21,28 +21,112 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function FloatingOrb({ index }: { index: number }) {
-  const animation = withRepeat(
-    withSequence(
-      withTiming(-20, { duration: 2000 + index * 500, easing: Easing.inOut(Easing.ease) }),
-      withTiming(0, { duration: 2000 + index * 500, easing: Easing.inOut(Easing.ease) }),
-    ),
-    -1,
-    true,
-  );
+function FloatingOrb({
+  index,
+  state,
+}: {
+  index: number;
+  state: 'idle' | 'listening' | 'processing';
+}) {
+  const scale = useSharedValue(1);
+  const translateY = useSharedValue(0);
+  const rotation = useSharedValue(0);
 
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: animation }],
-  }));
+  useEffect(() => {
+    // Cancel any ongoing animations
+    cancelAnimation(scale);
+    cancelAnimation(translateY);
+    cancelAnimation(rotation);
+
+    switch (state) {
+      case 'listening':
+        // Energetic pulsing animation
+        scale.value = withRepeat(
+          withSequence(
+            withTiming(1.1, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+            withTiming(0.9, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+          ),
+          -1,
+          true,
+        );
+        translateY.value = withRepeat(
+          withSequence(
+            withTiming(-10, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+            withTiming(10, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+          ),
+          -1,
+          true,
+        );
+        rotation.value = 0;
+        break;
+
+      case 'processing':
+        // Smooth circular motion
+        scale.value = withTiming(1.05, { duration: 500 });
+        translateY.value = withSpring(0);
+        rotation.value = withRepeat(
+          withTiming(2 * Math.PI, {
+            duration: 2000,
+            easing: Easing.linear,
+          }),
+          -1,
+          true,
+        );
+        break;
+
+      default: // idle
+        // Gentle floating motion
+        scale.value = withTiming(1, { duration: 500 });
+        translateY.value = withRepeat(
+          withSequence(
+            withTiming(-20, { duration: 2000 + index * 500, easing: Easing.inOut(Easing.ease) }),
+            withTiming(0, { duration: 2000 + index * 500, easing: Easing.inOut(Easing.ease) }),
+          ),
+          -1,
+          true,
+        );
+        rotation.value = withTiming(0, { duration: 500 });
+        break;
+    }
+
+    return () => {
+      cancelAnimation(scale);
+      cancelAnimation(translateY);
+      cancelAnimation(rotation);
+    };
+  }, [state, index]);
+
+  const animStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateY: translateY.value },
+        { scale: scale.value },
+        { rotate: `${rotation.value}rad` },
+      ],
+    };
+  });
+
+  // Get colors based on state
+  const getGradientColors = (): [string, string] => {
+    switch (state) {
+      case 'listening':
+        return [index === 0 ? '#FFB6E1' : '#FFE7F9', index === 0 ? '#FF69B4' : '#FF1493'];
+      case 'processing':
+        return [index === 0 ? '#7666F9' : '#836FFF', index === 0 ? '#4B0082' : '#483D8B'];
+      default: // idle
+        return [index === 0 ? '#E4D0FF' : '#FFE7F9', index === 0 ? '#FFE7F9' : '#D0E6FF'];
+    }
+  };
 
   return (
     <Animated.View style={[styles.orb, animStyle]}>
       <LinearGradient
-        colors={[
-          index === 0 ? '#E4D0FF' : index === 1 ? '#FFE7F9' : '#D0E6FF',
-          index === 0 ? '#FFE7F9' : index === 1 ? '#D0E6FF' : '#E4D0FF',
+        colors={getGradientColors()}
+        style={[
+          styles.orbGradient,
+          state === 'listening' && styles.orbGradientListening,
+          state === 'processing' && styles.orbGradientProcessing,
         ]}
-        style={styles.orbGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
@@ -259,8 +343,39 @@ export default function ChatScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
 
+  // Add pulse animation values
+  const pulseScale = useSharedValue(1);
+  const pulseOpacity = useSharedValue(0);
+
   const { isRecording, transcribedText, startRecording, stopRecording } = useVoiceRecognition();
   const recordingStartTime = useRef<number | null>(null);
+
+  // Add useEffect to control pulse animation
+  useEffect(() => {
+    if (isRecording) {
+      pulseScale.value = 1;
+      pulseOpacity.value = 0.8;
+      pulseScale.value = withRepeat(
+        withTiming(1.5, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        -1,
+        false,
+      );
+      pulseOpacity.value = withRepeat(
+        withTiming(0, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        -1,
+        false,
+      );
+    } else {
+      pulseScale.value = withTiming(1);
+      pulseOpacity.value = withTiming(0);
+    }
+  }, [isRecording]);
+
+  // Add pulse animation style
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+    opacity: pulseOpacity.value,
+  }));
 
   const handleMicPress = async () => {
     if (!isRecording) {
@@ -286,6 +401,9 @@ export default function ChatScreen() {
   const micStyle = useAnimatedStyle(() => ({
     transform: [{ scale: withSpring(isRecording ? 1.1 : 1) }],
   }));
+
+  // Determine the current state for the orb
+  const orbState = isProcessing ? 'processing' : isRecording ? 'listening' : 'idle';
 
   return (
     <ThemedView style={styles.container}>
@@ -319,7 +437,7 @@ export default function ChatScreen() {
         {/* Floating Orbs */}
         <View style={styles.orbsContainer}>
           {[0].map((index) => (
-            <FloatingOrb key={index} index={index} />
+            <FloatingOrb key={index} index={index} state={orbState} />
           ))}
         </View>
 
@@ -357,17 +475,20 @@ export default function ChatScreen() {
 
         {/* Bottom Controls */}
         <View style={[styles.controls, { paddingBottom: insets.bottom + 20 }]}>
-          <AnimatedPressable
-            style={[styles.micButton, micStyle]}
-            onPress={handleMicPress}
-            disabled={isProcessing}
-          >
-            <Ionicons
-              name={isRecording ? 'mic' : 'mic-outline'}
-              size={32}
-              color={isProcessing ? '#999' : '#333'}
-            />
-          </AnimatedPressable>
+          <View style={styles.micButtonContainer}>
+            <Animated.View style={[styles.micButtonPulse, pulseStyle]} />
+            <AnimatedPressable
+              style={[styles.micButton, micStyle]}
+              onPress={handleMicPress}
+              disabled={isProcessing}
+            >
+              <Ionicons
+                name={isRecording ? 'mic' : 'mic-outline'}
+                size={32}
+                color={isProcessing ? '#999' : '#333'}
+              />
+            </AnimatedPressable>
+          </View>
         </View>
       </View>
     </ThemedView>
@@ -478,6 +599,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  micButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  micButtonPulse: {
+    position: 'absolute',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#7666F9',
+    opacity: 0,
+  },
   micButton: {
     width: 70,
     height: 70,
@@ -538,5 +671,21 @@ const styles = StyleSheet.create({
     color: '#7666F9',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  orbGradientListening: {
+    opacity: 0.9,
+    shadowColor: '#FF69B4',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  orbGradientProcessing: {
+    opacity: 0.95,
+    shadowColor: '#7666F9',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
+    elevation: 8,
   },
 });
