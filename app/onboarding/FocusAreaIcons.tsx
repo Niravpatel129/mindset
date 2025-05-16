@@ -40,3 +40,11 @@ export const SpiritIcon = ({ size = 80, color = '#0a7ea4' }: IconProps) => (
     </Svg>
   </View>
 );
+
+const FocusAreaIcons = {
+  MindIcon,
+  BodyIcon,
+  SpiritIcon,
+};
+
+export default FocusAreaIcons;

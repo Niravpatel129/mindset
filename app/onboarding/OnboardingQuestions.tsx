@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   Dimensions,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,8 +23,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/ThemedText';
+import { StarryBackground } from '../components/StarryBackground';
 import { BodyIcon, MindIcon, SpiritIcon } from './FocusAreaIcons';
-import { StarryBackground } from './StarryBackground';
 
 const { width } = Dimensions.get('window');
 
@@ -130,7 +131,12 @@ function DuoButton({
       onPressOut={handlePressOut}
       onPress={onPress}
       disabled={disabled}
-      style={[styles.button, disabled && styles.buttonDisabled, animatedStyle]}
+      style={[
+        styles.baseButton,
+        !disabled && styles.buttonEnabled,
+        disabled && styles.buttonDisabled,
+        animatedStyle,
+      ]}
     >
       <View style={styles.buttonInner}>{children}</View>
     </AnimatedPressable>
@@ -189,7 +195,6 @@ export function OnboardingQuestions() {
 
   const handleStartJourney = async () => {
     try {
-      // Save onboarding answers to storage before navigating
       const onboardingData = {
         name: answers.name,
         age: answers.age,
@@ -198,13 +203,10 @@ export function OnboardingQuestions() {
       };
 
       await AsyncStorage.setItem('@mindset_onboarding', JSON.stringify(onboardingData));
-
-      // Navigate to the tabs
-      router.replace('/(tabs)');
+      router.replace('/(tabs)' as any);
     } catch (error) {
       console.error('Failed to save onboarding data:', error);
-      // Still navigate even if save fails
-      router.replace('/(tabs)');
+      router.replace('/(tabs)' as any);
     }
   };
 
@@ -284,7 +286,7 @@ export function OnboardingQuestions() {
       style={styles.container}
     >
       <StarryBackground />
-      <ThemedText type='title' style={styles.question}>
+      <ThemedText type='title' style={styles.questionText}>
         {currentQuestion.question}
       </ThemedText>
 
@@ -321,6 +323,8 @@ export function OnboardingQuestions() {
   );
 }
 
+export default OnboardingQuestions;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -335,14 +339,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  question: {
-    marginBottom: 30,
-    textAlign: 'center',
-    fontSize: 28,
+  questionText: {
+    fontSize: 24,
+    fontWeight: '600',
     color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   inputContainer: {
     width: '100%',
@@ -394,18 +396,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: 'transparent',
   },
+  buttonEnabled: {
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 3px 8px rgba(118, 102, 249, 0.5)',
+      },
+      default: {
+        shadowColor: '#7666F9',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.5,
+        shadowRadius: 8,
+        elevation: 5,
+      },
+    }),
+  },
   buttonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-    shadowOpacity: 0,
+    opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 18,
-    fontWeight: '700',
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    color: '#333',
+    textAlign: 'center',
   },
   progressContainer: {
     width: '100%',
@@ -543,5 +554,106 @@ const styles = StyleSheet.create({
   },
   focusAreaDescriptionSelected: {
     color: 'rgba(255, 255, 255, 0.95)',
+  },
+  focusAreaButton: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    marginVertical: 10,
+    width: '100%',
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 8px 16px rgba(118, 102, 249, 0.2)',
+      },
+      default: {
+        shadowColor: '#7666F9',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+        elevation: 8,
+      },
+    }),
+  },
+  selectedFocusArea: {
+    backgroundColor: '#f5f5f5',
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 4px 8px rgba(118, 102, 249, 0.3)',
+      },
+      default: {
+        shadowColor: '#7666F9',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+      },
+    }),
+  },
+  checkmark: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    padding: 4,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 0px 4px rgba(76, 175, 80, 0.5)',
+      },
+      default: {
+        shadowColor: '#4CAF50',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.5,
+        shadowRadius: 4,
+        elevation: 3,
+      },
+    }),
+  },
+  checkmarkText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  completionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 30,
+    width: '90%',
+    alignItems: 'center',
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 4px 12px rgba(118, 102, 249, 0.15)',
+      },
+      default: {
+        shadowColor: '#7666F9',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 7,
+      },
+    }),
+  },
+  completionCardSelected: {
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 4px 12px rgba(118, 102, 249, 0.3)',
+      },
+      default: {
+        shadowOpacity: 0.3,
+        elevation: 8,
+      },
+    }),
+  },
+  completionText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  baseButton: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 15,
+    marginVertical: 10,
+    width: '100%',
   },
 });
