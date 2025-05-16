@@ -253,8 +253,9 @@ const useVoiceRecognition = () => {
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [showFollowUp, setShowFollowUp] = useState(false);
+  const [aiMessage, setAiMessage] = useState(
+    'Hello Nehal!\nDid you feel you accomplished your goal today?',
+  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
 
@@ -271,11 +272,10 @@ export default function ChatScreen() {
       if (await stopRecording()) {
         const duration = Date.now() - (recordingStartTime.current || 0);
         console.log(`Recording duration: ${duration}ms`);
-        setShowWelcome(false);
         setShowTranscription(true);
         // Simulate processing delay
         await new Promise((resolve) => setTimeout(resolve, 1500));
-        setShowFollowUp(true);
+        setAiMessage("Why weren't you able to meet your goal today?");
       }
       setIsProcessing(false);
     }
@@ -323,36 +323,16 @@ export default function ChatScreen() {
           ))}
         </View>
 
-        {/* Welcome Message */}
-        {showWelcome && (
-          <Animated.View
-            entering={FadeIn.duration(500)}
-            exiting={FadeOut.duration(300)}
-            style={[styles.welcomeContainer, { backgroundColor: BUBBLE_BG_COLOR, borderRadius: 9 }]}
-          >
-            <View style={[styles.messageContent, { backgroundColor: BUBBLE_BG_COLOR }]}>
-              <ThemedText style={styles.welcomeText}>
-                Hello Nehal!{'\n'}Did you feel you accomplished your goal today?
-              </ThemedText>
-            </View>
-            <View style={[styles.chevronUp, { backgroundColor: BUBBLE_BG_COLOR }]} />
-          </Animated.View>
-        )}
-
-        {/* Follow-up Message */}
-        {showFollowUp && (
-          <Animated.View
-            entering={FadeIn.duration(500)}
-            style={[styles.welcomeContainer, { backgroundColor: BUBBLE_BG_COLOR, borderRadius: 9 }]}
-          >
-            <View style={[styles.messageContent, { backgroundColor: BUBBLE_BG_COLOR }]}>
-              <ThemedText style={styles.welcomeText}>
-                Why weren&apos;t you able to meet your goal today?
-              </ThemedText>
-            </View>
-            <View style={[styles.chevronUp, { backgroundColor: BUBBLE_BG_COLOR }]} />
-          </Animated.View>
-        )}
+        {/* AI Message */}
+        <Animated.View
+          entering={FadeIn.duration(500)}
+          style={[styles.welcomeContainer, { backgroundColor: BUBBLE_BG_COLOR, borderRadius: 9 }]}
+        >
+          <View style={[styles.messageContent, { backgroundColor: BUBBLE_BG_COLOR }]}>
+            <ThemedText style={styles.welcomeText}>{aiMessage}</ThemedText>
+          </View>
+          <View style={[styles.chevronUp, { backgroundColor: BUBBLE_BG_COLOR }]} />
+        </Animated.View>
 
         {/* Transcribed Text Animation */}
         {showTranscription && transcribedText ? <FadingText text={transcribedText} /> : null}
@@ -479,6 +459,7 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
     lineHeight: 24,
+    fontFamily: 'BodoniModa',
   },
   controls: {
     flexDirection: 'row',
