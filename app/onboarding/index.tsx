@@ -9,13 +9,16 @@ import Animated, {
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { OnboardingQuestions } from './OnboardingQuestions';
 
 export default function OnboardingScreen() {
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [visibleWordIndex, setVisibleWordIndex] = useState(-1);
   const [isComplete, setIsComplete] = useState(false);
   const [sentenceComplete, setSentenceComplete] = useState(false);
-  const blurValue = useSharedValue(5);
+  const [showTapToContinue, setShowTapToContinue] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(false);
+  const blurValue = useSharedValue(15);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sentences = [
@@ -33,6 +36,7 @@ export default function OnboardingScreen() {
     // Reset when switching to a new sentence
     setVisibleWordIndex(-1);
     setSentenceComplete(false);
+    setShowTapToContinue(false);
 
     // Start the word animation sequence
     const animateWords = () => {
@@ -44,12 +48,16 @@ export default function OnboardingScreen() {
           if (nextIndex >= words.length - 1) {
             clearInterval(wordInterval);
             setSentenceComplete(true);
+            // Add delay before showing tap to continue
+            setTimeout(() => {
+              setShowTapToContinue(true);
+            }, 1000);
             return words.length - 1;
           }
 
           return nextIndex;
         });
-      }, 600); // Time between words appearing
+      }, 300); // Time between words appearing - reduced from 600ms to 300ms for faster word appearance
 
       return wordInterval;
     };
@@ -58,7 +66,7 @@ export default function OnboardingScreen() {
     timerRef.current = setTimeout(() => {
       const interval = animateWords();
       timerRef.current = interval as unknown as ReturnType<typeof setTimeout>;
-    }, 300);
+    }, 200);
 
     // Cleanup
     return () => {
@@ -69,8 +77,8 @@ export default function OnboardingScreen() {
   // Animate the blur effect for each new word
   useEffect(() => {
     if (visibleWordIndex >= 0) {
-      blurValue.value = 5;
-      blurValue.value = withTiming(0, { duration: 800 });
+      blurValue.value = 15;
+      blurValue.value = withTiming(0, { duration: 400 });
     }
   }, [visibleWordIndex]);
 
@@ -84,6 +92,10 @@ export default function OnboardingScreen() {
     } else {
       // All sentences complete
       setIsComplete(true);
+      // Add a small delay before showing questions
+      setTimeout(() => {
+        setShowQuestions(true);
+      }, 500);
     }
   };
 
@@ -104,7 +116,7 @@ export default function OnboardingScreen() {
               <View key={`${currentSentenceIndex}-${index}`} style={styles.wordContainer}>
                 {index <= visibleWordIndex ? (
                   <Animated.View
-                    entering={FadeIn.duration(500)}
+                    entering={FadeIn.duration(300)} // Reduced from 500ms to 300ms for faster word fade-in
                     style={[index === visibleWordIndex ? animatedBlurStyle : null]}
                   >
                     <ThemedText style={styles.word} type='title'>
@@ -125,14 +137,16 @@ export default function OnboardingScreen() {
             ))}
           </View>
 
-          {sentenceComplete && (
-            <Animated.View entering={FadeIn.duration(500)} style={styles.tapToContinueContainer}>
+          {sentenceComplete && showTapToContinue && (
+            <Animated.View entering={FadeIn.duration(300)} style={styles.tapToContinueContainer}>
               <ThemedText style={styles.tapToContinue}>tap to continue</ThemedText>
             </Animated.View>
           )}
         </TouchableOpacity>
+      ) : showQuestions ? (
+        <OnboardingQuestions />
       ) : (
-        <Animated.View entering={FadeIn.duration(1000)} style={styles.completeContainer}>
+        <Animated.View entering={FadeIn.duration(500)} style={styles.completeContainer}>
           <ThemedText type='title' style={styles.completeText}>
             Let&apos;s Get Started
           </ThemedText>
