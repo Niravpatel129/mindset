@@ -51,6 +51,8 @@ export default function ChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
 
+  const BUBBLE_BG_COLOR = 'rgba(255, 255, 255, 1)'; // Fully opaque white
+
   const micStyle = useAnimatedStyle(() => ({
     transform: [{ scale: withSpring(isRecording ? 1.1 : 1) }],
   }));
@@ -93,10 +95,16 @@ export default function ChatScreen() {
 
         {/* Welcome Message */}
         {showWelcome && (
-          <Animated.View entering={FadeIn.duration(500)} style={styles.welcomeContainer}>
-            <ThemedText style={styles.welcomeText}>
-              Hello Nehal! {'\n'}Did you feel you accomplished your goal today?
-            </ThemedText>
+          <Animated.View
+            entering={FadeIn.duration(500)}
+            style={[styles.welcomeContainer, { backgroundColor: BUBBLE_BG_COLOR, borderRadius: 9 }]}
+          >
+            <View style={[styles.messageContent, { backgroundColor: BUBBLE_BG_COLOR }]}>
+              <ThemedText style={styles.welcomeText}>
+                Hello Nehal! {'\n'}Did you feel you accomplished your goal today?
+              </ThemedText>
+            </View>
+            <View style={[styles.chevronUp, { backgroundColor: BUBBLE_BG_COLOR }]} />
           </Animated.View>
         )}
 
@@ -178,11 +186,21 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   welcomeContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 20,
-    padding: 20,
     marginTop: 40,
     alignSelf: 'center',
+    position: 'relative',
+  },
+  messageContent: {
+    borderRadius: 20,
+    padding: 20,
+  },
+  chevronUp: {
+    position: 'absolute',
+    top: -10,
+    alignSelf: 'center',
+    width: 20,
+    height: 20,
+    transform: [{ rotate: '45deg' }],
   },
   welcomeText: {
     fontSize: 18,
