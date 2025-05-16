@@ -455,11 +455,10 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
   },
   welcomeText: {
-    fontSize: 18,
+    fontSize: 24,
     color: '#333',
     textAlign: 'center',
     lineHeight: 24,
-    fontFamily: 'BodoniModa',
   },
   controls: {
     flexDirection: 'row',
