@@ -2,11 +2,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   FadeIn,
+  FadeOut,
   useAnimatedStyle,
   withRepeat,
   withSequence,
@@ -46,16 +47,79 @@ function FloatingOrb({ index }: { index: number }) {
   );
 }
 
+// Define the API response type
+interface AudioProcessingResponse {
+  success: boolean;
+  message: string;
+}
+
+// Mock API call
+const mockProcessAudio = (): Promise<AudioProcessingResponse> => {
+  return new Promise((resolve) => {
+    // Simulate API delay between 2-4 seconds
+    const delay = 2000 + Math.random() * 2000;
+    setTimeout(() => {
+      resolve({
+        success: true,
+        message: 'Why weren&apos;t you able to meet your goal today.',
+      });
+    }, delay);
+  });
+};
+
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const [isRecording, setIsRecording] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+  const [dots, setDots] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Animate the dots
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isProcessing) {
+      interval = setInterval(() => {
+        setDots((prev) => {
+          if (prev === '...') return '';
+          return prev + '.';
+        });
+      }, 500);
+    } else {
+      setDots('');
+    }
+    return () => clearInterval(interval);
+  }, [isProcessing]);
 
   const BUBBLE_BG_COLOR = 'rgba(255, 255, 255, 1)'; // Fully opaque white
 
   const micStyle = useAnimatedStyle(() => ({
     transform: [{ scale: withSpring(isRecording ? 1.1 : 1) }],
   }));
+
+  const handleMicPress = async () => {
+    if (!isRecording) {
+      // Start recording
+      setIsRecording(true);
+      setShowFollowUp(false);
+    } else {
+      // Stop recording and process
+      setIsRecording(false);
+      setIsProcessing(true);
+      setShowWelcome(false);
+
+      try {
+        const response = await mockProcessAudio();
+        if (response.success) {
+          setShowFollowUp(true);
+        }
+      } catch (error) {
+        console.error('Error processing audio:', error);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -97,6 +161,7 @@ export default function ChatScreen() {
         {showWelcome && (
           <Animated.View
             entering={FadeIn.duration(500)}
+            exiting={FadeOut.duration(300)}
             style={[styles.welcomeContainer, { backgroundColor: BUBBLE_BG_COLOR, borderRadius: 9 }]}
           >
             <View style={[styles.messageContent, { backgroundColor: BUBBLE_BG_COLOR }]}>
@@ -108,13 +173,46 @@ export default function ChatScreen() {
           </Animated.View>
         )}
 
+        {/* Follow-up Message */}
+        {showFollowUp && (
+          <Animated.View
+            entering={FadeIn.duration(500)}
+            style={[styles.welcomeContainer, { backgroundColor: BUBBLE_BG_COLOR, borderRadius: 9 }]}
+          >
+            <View style={[styles.messageContent, { backgroundColor: BUBBLE_BG_COLOR }]}>
+              <ThemedText style={styles.welcomeText}>
+                Why weren&apos;t you able to meet your goal today?
+              </ThemedText>
+            </View>
+            <View style={[styles.chevronUp, { backgroundColor: BUBBLE_BG_COLOR }]} />
+          </Animated.View>
+        )}
+
+        {/* Listening/Processing Text */}
+        {(isRecording || isProcessing) && (
+          <Animated.View
+            entering={FadeIn.duration(300)}
+            exiting={FadeOut.duration(300)}
+            style={styles.listeningContainer}
+          >
+            <ThemedText style={styles.listeningText}>
+              {isProcessing ? `Processing${dots}` : 'Listening...'}
+            </ThemedText>
+          </Animated.View>
+        )}
+
         {/* Bottom Controls */}
         <View style={[styles.controls, { paddingBottom: insets.bottom + 20 }]}>
           <AnimatedPressable
             style={[styles.micButton, micStyle]}
-            onPress={() => setIsRecording(!isRecording)}
+            onPress={handleMicPress}
+            disabled={isProcessing}
           >
-            <Ionicons name={isRecording ? 'mic' : 'mic-outline'} size={32} color='#333' />
+            <Ionicons
+              name={isRecording ? 'mic' : 'mic-outline'}
+              size={32}
+              color={isProcessing ? '#999' : '#333'}
+            />
           </AnimatedPressable>
         </View>
       </View>
@@ -241,5 +339,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  listeningContainer: {
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  listeningText: {
+    fontSize: 18,
+    color: '#7666F9',
+    fontWeight: '600',
   },
 });
