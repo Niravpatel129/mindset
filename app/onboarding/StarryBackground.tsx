@@ -51,6 +51,8 @@ export function StarryBackground() {
   );
 }
 
+export default StarryBackground;
+
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',

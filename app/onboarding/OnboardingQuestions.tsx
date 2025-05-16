@@ -345,6 +345,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     marginBottom: 20,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
+      },
+    }),
   },
   inputContainer: {
     width: '100%',
@@ -379,14 +389,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#7666F9',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#7666F9',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 5,
     position: 'relative',
     borderBottomWidth: 4,
     borderBottomColor: '#5B4DC7',
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 3px 8px rgba(118, 102, 249, 0.5)',
+      },
+      default: {
+        shadowColor: '#7666F9',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.5,
+        shadowRadius: 8,
+        elevation: 5,
+      },
+    }),
   },
   buttonInner: {
     width: '100%',
@@ -417,6 +434,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#333',
     textAlign: 'center',
+    ...Platform.select({
+      web: {
+        textShadow: '0px 1px 2px rgba(0, 0, 0, 0.25)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.25)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
+      },
+    }),
   },
   progressContainer: {
     width: '100%',
@@ -436,12 +463,19 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     borderWidth: 1,
     borderColor: 'rgba(118, 102, 249, 0.2)',
-    shadowColor: '#7666F9',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 5,
     backdropFilter: 'blur(20px)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 8px 16px rgba(118, 102, 249, 0.2)',
+      },
+      default: {
+        shadowColor: '#7666F9',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+        elevation: 5,
+      },
+    }),
   },
   avatarContainer: {
     position: 'absolute',
@@ -456,11 +490,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#7666F9',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#7666F9',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 4px 8px rgba(118, 102, 249, 0.3)',
+      },
+      default: {
+        shadowColor: '#7666F9',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+      },
+    }),
   },
   avatarText: {
     color: '#fff',
@@ -612,6 +653,16 @@ const styles = StyleSheet.create({
   checkmarkText: {
     color: '#fff',
     fontSize: 14,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.2)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
+      },
+    }),
   },
   completionCard: {
     backgroundColor: '#fff',
@@ -648,6 +699,16 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: 10,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.2)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
+      },
+    }),
   },
   baseButton: {
     backgroundColor: '#fff',

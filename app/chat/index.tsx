@@ -312,7 +312,7 @@ export default function ChatScreen() {
       </View>
 
       {/* Stats */}
-      <ThemedText style={styles.stats}>2048 Users Accomplished their Goal today</ThemedText>
+      <ThemedText style={styles.stats}>12,048 Users Accomplished their Goal today</ThemedText>
 
       {/* Main Content */}
       <View style={styles.content}>
@@ -505,8 +505,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
-    elevation: 5,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+      },
+    }),
   },
   waveContainer: {
     flexDirection: 'row',
