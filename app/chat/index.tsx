@@ -65,14 +65,18 @@ export default function ChatScreen() {
       />
 
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <Pressable style={styles.iconButton}>
-          <Ionicons name='menu' size={24} color='#333' />
-        </Pressable>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + 10,
+            paddingBottom: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        ]}
+      >
         <ThemedText style={styles.title}>Mindset</ThemedText>
-        <Pressable style={styles.iconButton}>
-          <Ionicons name='notifications-outline' size={24} color='#333' />
-        </Pressable>
       </View>
 
       {/* Stats */}
@@ -82,7 +86,7 @@ export default function ChatScreen() {
       <View style={styles.content}>
         {/* Floating Orbs */}
         <View style={styles.orbsContainer}>
-          {[0, 1, 2].map((index) => (
+          {[0].map((index) => (
             <FloatingOrb key={index} index={index} />
           ))}
         </View>
@@ -91,27 +95,19 @@ export default function ChatScreen() {
         {showWelcome && (
           <Animated.View entering={FadeIn.duration(500)} style={styles.welcomeContainer}>
             <ThemedText style={styles.welcomeText}>
-              Hello Arafat!{'\n'}I&apos;m your AI Assistant
+              Hello Nehal! {'\n'}Did you feel you accomplished your goal today?
             </ThemedText>
           </Animated.View>
         )}
 
         {/* Bottom Controls */}
         <View style={[styles.controls, { paddingBottom: insets.bottom + 20 }]}>
-          <Pressable style={styles.controlButton}>
-            <Ionicons name='pulse' size={24} color='#7666F9' />
-          </Pressable>
-
           <AnimatedPressable
             style={[styles.micButton, micStyle]}
             onPress={() => setIsRecording(!isRecording)}
           >
             <Ionicons name={isRecording ? 'mic' : 'mic-outline'} size={32} color='#333' />
           </AnimatedPressable>
-
-          <Pressable style={styles.controlButton}>
-            <Ionicons name='arrow-up' size={24} color='#7666F9' />
-          </Pressable>
         </View>
       </View>
     </ThemedView>
@@ -141,11 +137,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
+    color: '#fff',
+    textAlign: 'center',
   },
   stats: {
     fontSize: 16,
     color: '#7666F9',
+    backgroundClip: 'text',
     textAlign: 'center',
     marginTop: 10,
   },
@@ -169,9 +167,9 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   orb: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     overflow: 'hidden',
   },
   orbGradient: {
