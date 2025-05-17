@@ -7,12 +7,7 @@ const IS_MOBILE = Platform.OS !== 'web';
 
 const getLocalUrl = () => {
   if (Platform.OS !== 'web') return 'http://localhost:3005';
-
-  const hostname = window.location.hostname;
-  if (hostname === 'localhost') return 'http://localhost:3005';
-
-  const subdomain = hostname.split('.')[0];
-  return `http://${subdomain}.mindset.com:3005`;
+  return 'http://localhost:3005';
 };
 
 export const connectionUrl = IS_PRODUCTION || IS_MOBILE ? 'https://api.mindset.com' : getLocalUrl();
@@ -36,15 +31,9 @@ newRequest.interceptors.request.use(async (config) => {
 
   // Add workspace header for web environment
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname !== 'localhost') {
-      const subdomain = hostname.split('.')[0];
-      config.headers.workspace = subdomain;
-    } else {
-      const pathParts = window.location.pathname.split('/');
-      if (pathParts.length > 1 && pathParts[1]) {
-        config.headers.workspace = pathParts[1];
-      }
+    const pathParts = window.location.pathname.split('/');
+    if (pathParts.length > 1 && pathParts[1]) {
+      config.headers.workspace = pathParts[1];
     }
   }
 
@@ -109,15 +98,9 @@ export const streamRequest = async ({
 
     // Add workspace header for web environment
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname !== 'localhost') {
-        const subdomain = hostname.split('.')[0];
-        headers.workspace = subdomain;
-      } else {
-        const pathParts = window.location.pathname.split('/');
-        if (pathParts.length > 1 && pathParts[1]) {
-          headers.workspace = pathParts[1];
-        }
+      const pathParts = window.location.pathname.split('/');
+      if (pathParts.length > 1 && pathParts[1]) {
+        headers.workspace = pathParts[1];
       }
     }
 
