@@ -3,7 +3,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ImageBackground, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -342,6 +342,7 @@ export default function ChatScreen() {
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Add pulse animation values
   const pulseScale = useSharedValue(1);
@@ -407,12 +408,32 @@ export default function ChatScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <LinearGradient
-        colors={['#F3E7FF', '#E4D0FF', '#FFE7F9']}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
+      <ImageBackground
+        source={{ uri: 'https://www.transparenttextures.com/patterns/diamond-upholstery.png' }}
+        style={[StyleSheet.absoluteFill, { opacity: 0.3 }]}
+        resizeMode='repeat'
+        onLoad={() => {
+          console.log('Texture image loaded');
+          setImageLoaded(true);
+        }}
+        onError={(error) => console.error('Failed to load texture:', error)}
+      >
+        <LinearGradient
+          colors={[
+            'rgba(243, 231, 255, 0.9)',
+            'rgba(228, 208, 255, 0.9)',
+            'rgba(255, 231, 249, 0.9)',
+          ]}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        {!imageLoaded && (
+          <View style={StyleSheet.absoluteFill}>
+            <ThemedText>Loading texture...</ThemedText>
+          </View>
+        )}
+      </ImageBackground>
 
       {/* Header */}
       <View
