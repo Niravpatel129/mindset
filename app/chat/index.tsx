@@ -127,6 +127,9 @@ export default function ChatScreen() {
 
   const orbState = isProcessing ? 'processing' : isRecording ? 'listening' : 'idle';
 
+  const currentMessage = chatHistory.length > 0 ? chatHistory[chatHistory.length - 1] : null;
+  const previousMessage = chatHistory.length > 1 ? chatHistory[chatHistory.length - 2] : null;
+
   return (
     <ThemedView style={styles.container}>
       <LinearGradient
@@ -149,10 +152,27 @@ export default function ChatScreen() {
           entering={FadeIn.duration(500)}
           style={[styles.welcomeContainer, { backgroundColor: 'transparent', borderRadius: 9 }]}
         >
-          <ThemedView style={[styles.messageContent, { backgroundColor: 'transparent' }]}>
-            <ThemedText style={styles.welcomeText}>{aiMessage}</ThemedText>
-          </ThemedView>
-          <ThemedView style={[styles.chevronUp, { backgroundColor: 'transparent' }]} />
+          {previousMessage && (
+            <ThemedView
+              style={[
+                styles.messageContent,
+                styles.previousMessageContainer,
+                { backgroundColor: 'transparent' },
+              ]}
+            >
+              <ThemedText style={[styles.welcomeText, styles.previousMessageText]}>
+                {previousMessage.content}
+              </ThemedText>
+            </ThemedView>
+          )}
+          {currentMessage && (
+            <ThemedView style={styles.currentMessageWrapper}>
+              <ThemedView style={[styles.messageContent, { backgroundColor: 'transparent' }]}>
+                <ThemedText style={styles.welcomeText}>{currentMessage.content}</ThemedText>
+              </ThemedView>
+              <ThemedView style={[styles.chevronUp, { backgroundColor: 'transparent' }]} />
+            </ThemedView>
+          )}
         </Animated.View>
 
         {showTranscription && transcribedText ? <FadingText text={transcribedText} /> : null}
@@ -208,6 +228,19 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   messageContent: {
+    borderRadius: 20,
+    padding: 20,
+  },
+  previousMessageContainer: {
+    opacity: 0.6,
+    transform: [{ perspective: 800 }, { rotateX: '30deg' }, { scale: 0.9 }, { translateY: -40 }],
+  },
+  previousMessageText: {
+    fontSize: 18,
+  },
+  currentMessageWrapper: {
+    position: 'relative',
+    marginTop: 5,
     borderRadius: 20,
     padding: 20,
   },
