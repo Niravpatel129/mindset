@@ -21,14 +21,10 @@ interface ChatMessage {
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const [initialState, setInitialState] = useState<any>(null);
-  const [aiMessage, setAiMessage] = useState(
-    'Hello Nehal!\nDid you feel you accomplished your goal today?',
-  );
+  const [aiMessage, setAiMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   const { isRecording, transcribedText, startRecording, stopRecording } = useVoiceRecognition();
   const recordingStartTime = useRef<number | null>(null);
@@ -38,10 +34,6 @@ export default function ChatScreen() {
       try {
         const response = await newRequest.get('/chat/initial-state');
         const initialStateData = response.data;
-
-        setInitialState(initialStateData);
-        if (initialStateData && initialStateData.userTask) {
-        }
 
         setAiMessage(initialStateData.message);
         setChatHistory([
