@@ -3,7 +3,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChatControls } from '../components/chat/ChatControls';
@@ -13,12 +13,19 @@ import { FloatingOrb } from '../components/chat/FloatingOrb';
 import { VoiceWave } from '../components/chat/VoiceWave';
 import { newRequest } from '../utils/newRequest';
 
+interface ChatMessage {
+  role: 'assistant' | 'user';
+  content: string;
+  timestamp: number;
+}
+
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const [initialState, setInitialState] = useState<any>(null);
   const [aiMessage, setAiMessage] = useState(
     'Hello Nehal!\nDid you feel you accomplished your goal today?',
   );
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -34,17 +41,30 @@ export default function ChatScreen() {
 
         setInitialState(initialStateData);
         if (initialStateData && initialStateData.userTask) {
-          setAiMessage(`Hello Nehal!
-${initialStateData.userTask}`);
         }
+
+        setAiMessage(initialStateData.message);
+        setChatHistory([
+          { role: 'assistant', content: initialStateData.message, timestamp: Date.now() },
+        ]);
       } catch (error) {
+        // alert the user that the initial state is not available
+        Alert.alert('Initial state is not available');
+
         console.error('Failed to fetch initial state:', error);
-        setAiMessage("Hello Nehal! I couldn't load your initial task. Please try again.");
       }
     };
 
     fetchInitialState();
   }, []);
+
+  const addMessageToHistory = (role: 'assistant' | 'user', content: string) => {
+    const newMessage: ChatMessage = { role, content, timestamp: Date.now() };
+    setChatHistory((prevHistory) => [...prevHistory, newMessage]);
+    if (role === 'assistant') {
+      setAiMessage(content);
+    }
+  };
 
   const handleMicPress = async () => {
     if (!isRecording) {
@@ -53,12 +73,54 @@ ${initialStateData.userTask}`);
       await startRecording();
     } else {
       setIsProcessing(true);
-      if (await stopRecording()) {
+      const recordingResult = await stopRecording();
+
+      if (recordingResult && recordingResult.success) {
         const duration = Date.now() - (recordingStartTime.current || 0);
         console.log(`Recording duration: ${duration}ms`);
         setShowTranscription(true);
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        setAiMessage("Why weren't you able to meet your goal today?");
+
+        const userMessageContent = recordingResult.text;
+
+        if (userMessageContent && userMessageContent.trim().length > 0) {
+          const userMessageEntry: ChatMessage = {
+            role: 'user',
+            content: userMessageContent,
+            timestamp: Date.now(),
+          };
+          const updatedHistory = [...chatHistory, userMessageEntry];
+          setChatHistory(updatedHistory);
+
+          console.log('User message from recordingResult:', userMessageContent);
+          try {
+            console.log('Sending to backend:', {
+              currentUserMessage: userMessageEntry,
+              chatHistory: updatedHistory,
+            });
+            const response = await newRequest.post('/chat/user-response', {
+              currentUserMessage: userMessageEntry,
+              chatHistory: updatedHistory,
+            });
+
+            const nextAiMessageText =
+              response.data.nextAiMessage || 'I received your message. How can I help further?';
+            addMessageToHistory('assistant', nextAiMessageText);
+          } catch (error) {
+            console.error('Failed to send user response to backend:', error);
+            addMessageToHistory('assistant', "I couldn't process your response. Please try again.");
+          }
+        } else {
+          console.warn(
+            'Transcribed text from stopRecording is empty or only whitespace. Not sending to backend.',
+          );
+          addMessageToHistory('assistant', "I didn't catch that. Could you please try again?");
+        }
+      } else {
+        console.error('stopRecording failed or returned no text:', recordingResult);
+        addMessageToHistory(
+          'assistant',
+          'There was an issue stopping the recording or nothing was transcribed. Please try again.',
+        );
       }
       setIsProcessing(false);
     }
