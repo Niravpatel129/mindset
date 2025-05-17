@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     overflow: 'hidden',
     position: 'absolute',
+    opacity: 0.85,
   },
   orbGradient: {
     width: '100%',
