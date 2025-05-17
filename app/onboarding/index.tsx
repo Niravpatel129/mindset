@@ -22,10 +22,10 @@ export default function OnboardingScreen() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sentences = [
-    'Welcome to Mindset',
-    'Your journey to mental clarity begins here',
-    'Focus on what matters most',
-    'Take a deep breath and let&apos;s begin',
+    'Your personal accountability partner',
+    "Together, we'll track your daily goals",
+    'No judgment, just honest check-ins',
+    "Let's make progress, one day at a time",
   ];
 
   const currentSentence = sentences[currentSentenceIndex];
@@ -48,16 +48,12 @@ export default function OnboardingScreen() {
           if (nextIndex >= words.length - 1) {
             clearInterval(wordInterval);
             setSentenceComplete(true);
-            // Add delay before showing tap to continue
-            setTimeout(() => {
-              setShowTapToContinue(true);
-            }, 1000);
             return words.length - 1;
           }
 
           return nextIndex;
         });
-      }, 300); // Time between words appearing - reduced from 600ms to 300ms for faster word appearance
+      }, 450); // Time between words appearing - adjusted for more natural pacing
 
       return wordInterval;
     };
@@ -66,7 +62,7 @@ export default function OnboardingScreen() {
     timerRef.current = setTimeout(() => {
       const interval = animateWords();
       timerRef.current = interval as unknown as ReturnType<typeof setTimeout>;
-    }, 200);
+    }, 600);
 
     // Cleanup
     return () => {
@@ -74,11 +70,22 @@ export default function OnboardingScreen() {
     };
   }, [currentSentenceIndex, words.length]);
 
+  // Handle showing tap to continue after sentence is complete
+  useEffect(() => {
+    if (sentenceComplete) {
+      const tapTimer = setTimeout(() => {
+        setShowTapToContinue(true);
+      }, 2000);
+
+      return () => clearTimeout(tapTimer);
+    }
+  }, [sentenceComplete]);
+
   // Animate the blur effect for each new word
   useEffect(() => {
     if (visibleWordIndex >= 0) {
       blurValue.value = 15;
-      blurValue.value = withTiming(0, { duration: 400 });
+      blurValue.value = withTiming(0, { duration: 600 }); // Slower blur transition
     }
   }, [visibleWordIndex]);
 
