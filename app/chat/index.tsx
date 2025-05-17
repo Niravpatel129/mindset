@@ -103,8 +103,15 @@ export default function ChatScreen() {
             });
 
             const nextAiMessageText =
-              response.data.nextAiMessage || 'I received your message. How can I help further?';
+              response.data.aiMessage || 'I received your message. How can I help further?';
             addMessageToHistory('assistant', nextAiMessageText);
+
+            if (
+              response.data.collectedInformation &&
+              response.data.collectedInformation.nextGoalProvided
+            ) {
+              Alert.alert('Next goal has been provided!');
+            }
           } catch (error) {
             console.error('Failed to send user response to backend:', error);
             addMessageToHistory('assistant', "I couldn't process your response. Please try again.");
