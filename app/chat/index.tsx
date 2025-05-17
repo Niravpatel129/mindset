@@ -61,7 +61,7 @@ export default function ChatScreen() {
       <ThemedView style={[styles.content, { backgroundColor: 'transparent' }]}>
         {/* Floating Orbs */}
         <ThemedView style={[styles.orbsContainer, { backgroundColor: 'transparent' }]}>
-          {[0].map((index) => (
+          {[0, 1, 2].map((index) => (
             <FloatingOrb key={index} index={index} state={orbState} />
           ))}
         </ThemedView>
@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   orbsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     alignItems: 'center',
     height: 200,
     marginTop: 40,
+    position: 'relative',
   },
   welcomeContainer: {
     marginTop: 40,

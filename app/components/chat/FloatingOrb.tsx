@@ -22,12 +22,14 @@ interface FloatingOrbProps {
 export function FloatingOrb({ index, state }: FloatingOrbProps) {
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
+  const translateX = useSharedValue(0);
   const rotation = useSharedValue(0);
 
   useEffect(() => {
     // Cancel any ongoing animations
     cancelAnimation(scale);
     cancelAnimation(translateY);
+    cancelAnimation(translateX);
     cancelAnimation(rotation);
 
     switch (state) {
@@ -43,8 +45,16 @@ export function FloatingOrb({ index, state }: FloatingOrbProps) {
         );
         translateY.value = withRepeat(
           withSequence(
-            withTiming(-10, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-            withTiming(10, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+            withTiming(-10 - index * 5, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+            withTiming(10 + index * 5, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+          ),
+          -1,
+          true,
+        );
+        translateX.value = withRepeat(
+          withSequence(
+            withTiming(5 + index * 2, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+            withTiming(-5 - index * 2, { duration: 700, easing: Easing.inOut(Easing.ease) }),
           ),
           -1,
           true,
@@ -56,6 +66,7 @@ export function FloatingOrb({ index, state }: FloatingOrbProps) {
         // Smooth circular motion
         scale.value = withTiming(1.05, { duration: 500 });
         translateY.value = withSpring(0);
+        translateX.value = withSpring(index % 2 === 0 ? 5 : -5);
         rotation.value = withRepeat(
           withTiming(2 * Math.PI, {
             duration: 2000,
@@ -71,8 +82,28 @@ export function FloatingOrb({ index, state }: FloatingOrbProps) {
         scale.value = withTiming(1, { duration: 500 });
         translateY.value = withRepeat(
           withSequence(
-            withTiming(-20, { duration: 2000 + index * 500, easing: Easing.inOut(Easing.ease) }),
-            withTiming(0, { duration: 2000 + index * 500, easing: Easing.inOut(Easing.ease) }),
+            withTiming(-15 - index * 5, {
+              duration: 2000 + index * 500,
+              easing: Easing.inOut(Easing.ease),
+            }),
+            withTiming(5 + index * 2, {
+              duration: 2000 + index * 500,
+              easing: Easing.inOut(Easing.ease),
+            }),
+          ),
+          -1,
+          true,
+        );
+        translateX.value = withRepeat(
+          withSequence(
+            withTiming(10 + index * 3, {
+              duration: 2500 + index * 600,
+              easing: Easing.inOut(Easing.ease),
+            }),
+            withTiming(-10 - index * 3, {
+              duration: 2500 + index * 600,
+              easing: Easing.inOut(Easing.ease),
+            }),
           ),
           -1,
           true,
@@ -84,6 +115,7 @@ export function FloatingOrb({ index, state }: FloatingOrbProps) {
     return () => {
       cancelAnimation(scale);
       cancelAnimation(translateY);
+      cancelAnimation(translateX);
       cancelAnimation(rotation);
     };
   }, [state, index]);
@@ -91,6 +123,7 @@ export function FloatingOrb({ index, state }: FloatingOrbProps) {
   const animStyle = useAnimatedStyle(() => {
     return {
       transform: [
+        { translateX: translateX.value },
         { translateY: translateY.value },
         { scale: scale.value },
         { rotate: `${rotation.value}rad` },
@@ -102,11 +135,26 @@ export function FloatingOrb({ index, state }: FloatingOrbProps) {
   const getGradientColors = (): [string, string] => {
     switch (state) {
       case 'listening':
-        return [index === 0 ? '#FFB6E1' : '#FFE7F9', index === 0 ? '#FF69B4' : '#FF1493'];
+        if (index === 0) {
+          return ['#FFB6E1', '#FF69B4']; // Pinkish for main orb
+        } else if (index === 1) {
+          return ['#FFDAB9', '#FFA07A']; // Peach/Light Salmon for second orb
+        }
+        return ['#FFE7F9', '#FF1493']; // Original fallback (Hotter Pink for third orb)
       case 'processing':
-        return [index === 0 ? '#7666F9' : '#836FFF', index === 0 ? '#4B0082' : '#483D8B'];
+        if (index === 0) {
+          return ['#7666F9', '#4B0082']; // Purple for main orb
+        } else if (index === 1) {
+          return ['#ADD8E6', '#87CEFA']; // Light Blue for second orb
+        }
+        return ['#836FFF', '#483D8B']; // Original fallback (Darker Purple/Blue for third orb)
       default: // idle
-        return [index === 0 ? '#E4D0FF' : '#FFE7F9', index === 0 ? '#FFE7F9' : '#D0E6FF'];
+        if (index === 0) {
+          return ['#E4D0FF', '#FFE7F9']; // Light Lavender/Pink for main orb
+        } else if (index === 1) {
+          return ['#E0FFFF', '#AFEEEE']; // Light Cyan/Pale Turquoise for second orb
+        }
+        return ['#FFE7F9', '#D0E6FF']; // Original fallback (Light Pink/Blue for third orb)
     }
   };
 
@@ -128,15 +176,16 @@ export function FloatingOrb({ index, state }: FloatingOrbProps) {
 
 const styles = StyleSheet.create({
   orb: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
     overflow: 'hidden',
+    position: 'absolute',
   },
   orbGradient: {
     width: '100%',
     height: '100%',
-    borderRadius: 50,
+    borderRadius: 75,
   },
   orbGradientListening: {
     opacity: 0.9,
