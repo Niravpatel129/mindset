@@ -3,7 +3,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useRef, useState } from 'react';
-import { ImageBackground, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChatControls } from '../components/chat/ChatControls';
@@ -48,39 +48,19 @@ export default function ChatScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ImageBackground
-        source={{ uri: 'https://www.transparenttextures.com/patterns/diamond-upholstery.png' }}
-        style={[StyleSheet.absoluteFill, { opacity: 0.3 }]}
-        resizeMode='repeat'
-        onLoad={() => {
-          console.log('Texture image loaded');
-          setImageLoaded(true);
-        }}
-        onError={(error) => console.error('Failed to load texture:', error)}
-      >
-        <LinearGradient
-          colors={[
-            'rgba(243, 231, 255, 0.9)',
-            'rgba(228, 208, 255, 0.9)',
-            'rgba(255, 231, 249, 0.9)',
-          ]}
-          style={StyleSheet.absoluteFill}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        />
-        {!imageLoaded && (
-          <ThemedView style={StyleSheet.absoluteFill}>
-            <ThemedText>Loading texture...</ThemedText>
-          </ThemedView>
-        )}
-      </ImageBackground>
+      <LinearGradient
+        colors={['rgba(243, 231, 255, 1)', 'rgba(228, 208, 255, 1)', 'rgba(255, 231, 249, 1)']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
 
       <ChatHeader topInset={insets.top} />
 
       {/* Main Content */}
-      <ThemedView style={styles.content}>
+      <ThemedView style={[styles.content, { backgroundColor: 'transparent' }]}>
         {/* Floating Orbs */}
-        <ThemedView style={styles.orbsContainer}>
+        <ThemedView style={[styles.orbsContainer, { backgroundColor: 'transparent' }]}>
           {[0].map((index) => (
             <FloatingOrb key={index} index={index} state={orbState} />
           ))}
@@ -89,17 +69,12 @@ export default function ChatScreen() {
         {/* AI Message */}
         <Animated.View
           entering={FadeIn.duration(500)}
-          style={[
-            styles.welcomeContainer,
-            { backgroundColor: 'rgba(255, 255, 255, 1)', borderRadius: 9 },
-          ]}
+          style={[styles.welcomeContainer, { backgroundColor: 'transparent', borderRadius: 9 }]}
         >
-          <ThemedView
-            style={[styles.messageContent, { backgroundColor: 'rgba(255, 255, 255, 1)' }]}
-          >
+          <ThemedView style={[styles.messageContent, { backgroundColor: 'transparent' }]}>
             <ThemedText style={styles.welcomeText}>{aiMessage}</ThemedText>
           </ThemedView>
-          <ThemedView style={[styles.chevronUp, { backgroundColor: 'rgba(255, 255, 255, 1)' }]} />
+          <ThemedView style={[styles.chevronUp, { backgroundColor: 'transparent' }]} />
         </Animated.View>
 
         {/* Transcribed Text Animation */}

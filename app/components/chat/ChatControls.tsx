@@ -57,11 +57,7 @@ export function ChatControls({
           onPress={onMicPress}
           disabled={isProcessing}
         >
-          <Ionicons
-            name={isRecording ? 'mic' : 'mic-outline'}
-            size={32}
-            color={isProcessing ? '#999' : '#333'}
-          />
+          <Ionicons name={isRecording ? 'mic' : 'mic-outline'} size={32} color={'red'} />
         </AnimatedPressable>
       </View>
     </View>
