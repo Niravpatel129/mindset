@@ -94,8 +94,11 @@ export default function ChatScreen() {
               chatHistory: updatedHistory,
             });
 
+            const aiMessageArray = response.data.aiMessage;
             const nextAiMessageText =
-              response.data.aiMessage || 'I received your message. How can I help further?';
+              Array.isArray(aiMessageArray) && aiMessageArray.length > 0
+                ? aiMessageArray[0]
+                : 'I received your message. How can I help further?';
             addMessageToHistory('assistant', nextAiMessageText);
 
             if (
