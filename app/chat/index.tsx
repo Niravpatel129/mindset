@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,9 +11,11 @@ import { ChatHeader } from '../components/chat/ChatHeader';
 import { FadingText } from '../components/chat/FadingText';
 import { FloatingOrb } from '../components/chat/FloatingOrb';
 import { VoiceWave } from '../components/chat/VoiceWave';
+import { newRequest } from '../utils/newRequest';
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
+  const [initialState, setInitialState] = useState<any>(null);
   const [aiMessage, setAiMessage] = useState(
     'Hello Nehal!\nDid you feel you accomplished your goal today?',
   );
@@ -23,6 +25,26 @@ export default function ChatScreen() {
 
   const { isRecording, transcribedText, startRecording, stopRecording } = useVoiceRecognition();
   const recordingStartTime = useRef<number | null>(null);
+
+  useEffect(() => {
+    const fetchInitialState = async () => {
+      try {
+        const response = await newRequest.get('/chat/initial-state');
+        const initialStateData = response.data;
+
+        setInitialState(initialStateData);
+        if (initialStateData && initialStateData.userTask) {
+          setAiMessage(`Hello Nehal!
+${initialStateData.userTask}`);
+        }
+      } catch (error) {
+        console.error('Failed to fetch initial state:', error);
+        setAiMessage("Hello Nehal! I couldn't load your initial task. Please try again.");
+      }
+    };
+
+    fetchInitialState();
+  }, []);
 
   const handleMicPress = async () => {
     if (!isRecording) {
@@ -35,7 +57,6 @@ export default function ChatScreen() {
         const duration = Date.now() - (recordingStartTime.current || 0);
         console.log(`Recording duration: ${duration}ms`);
         setShowTranscription(true);
-        // Simulate processing delay
         await new Promise((resolve) => setTimeout(resolve, 1500));
         setAiMessage("Why weren't you able to meet your goal today?");
       }
@@ -43,7 +64,6 @@ export default function ChatScreen() {
     }
   };
 
-  // Determine the current state for the orb
   const orbState = isProcessing ? 'processing' : isRecording ? 'listening' : 'idle';
 
   return (
@@ -57,16 +77,13 @@ export default function ChatScreen() {
 
       <ChatHeader topInset={insets.top} />
 
-      {/* Main Content */}
       <ThemedView style={[styles.content, { backgroundColor: 'transparent' }]}>
-        {/* Floating Orbs */}
         <ThemedView style={[styles.orbsContainer, { backgroundColor: 'transparent' }]}>
           {[0, 1, 2].map((index) => (
             <FloatingOrb key={index} index={index} state={orbState} />
           ))}
         </ThemedView>
 
-        {/* AI Message */}
         <Animated.View
           entering={FadeIn.duration(500)}
           style={[styles.welcomeContainer, { backgroundColor: 'transparent', borderRadius: 9 }]}
@@ -77,10 +94,8 @@ export default function ChatScreen() {
           <ThemedView style={[styles.chevronUp, { backgroundColor: 'transparent' }]} />
         </Animated.View>
 
-        {/* Transcribed Text Animation */}
         {showTranscription && transcribedText ? <FadingText text={transcribedText} /> : null}
 
-        {/* Listening/Processing Animation */}
         {isRecording || isProcessing ? (
           <Animated.View
             entering={FadeIn.duration(300)}
