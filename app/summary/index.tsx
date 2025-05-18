@@ -145,7 +145,14 @@ export default function SummaryScreen() {
         {summaryData.consistency.map((active, index) => (
           <ThemedView
             key={index}
-            style={[styles.consistencyDay, { backgroundColor: active ? '#7666F9' : '#E0E0E0' }]}
+            style={[
+              styles.consistencyDay,
+              {
+                backgroundColor: active
+                  ? styles.consistencyDayActive.backgroundColor
+                  : styles.consistencyDayInactive.backgroundColor,
+              },
+            ]}
           />
         ))}
       </ThemedView>
@@ -155,23 +162,15 @@ export default function SummaryScreen() {
   return (
     <ThemedView style={styles.container}>
       <LinearGradient
-        colors={['rgba(243, 231, 255, 1)', 'rgba(228, 208, 255, 1)', 'rgba(255, 231, 249, 1)']}
+        colors={['#F9FAFB', '#F3F4F6']} // Updated to neutral grays
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
 
-      {/* <SummaryHeader topInset={insets.top} /> */}
-      {/* Placeholder for Header, can add later if needed */}
-      <ThemedView
-        style={{ paddingTop: insets.top, paddingHorizontal: 15, backgroundColor: 'transparent' }}
-      >
-        <ThemedText style={styles.headerTitle}>Your Summary</ThemedText>
-      </ThemedView>
-
       <ScrollView
         style={[styles.content, { backgroundColor: 'transparent' }]}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20, marginTop: 20 }}
       >
         {/* Current Goal & Check-in Section */}
         <ThemedView style={[styles.sectionContainer, styles.goalSectionContainer]}>
@@ -213,133 +212,140 @@ export default function SummaryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent', // Ensure gradient shows
+    backgroundColor: 'transparent', // To allow gradient to show through
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#1F2937', // Darkest gray
     textAlign: 'center',
-    marginVertical: 10, // Added some vertical margin
+    marginVertical: 16,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24, // Increased for more whitespace
   },
   sectionContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)', // Semi-transparent white cards
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Slightly more opaque white cards
+    borderRadius: 12, // Standardized border radius
+    padding: 16, // Standardized padding
+    marginBottom: 24, // Standardized margin
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 }, // Subtle shadow
+    shadowOpacity: 0.05, // More subtle shadow
+    shadowRadius: 10, // Softened shadow
+    elevation: 2, // Adjusted elevation for Android
   },
   goalSectionContainer: {
-    // Specific styles for the goal section for centering
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 10,
-    textAlign: 'center', // Center section titles as well for consistency
+    color: '#374151', // Dark gray
+    marginBottom: 16,
+    textAlign: 'center',
   },
   sectionText: {
-    fontSize: 16,
-    color: '#555',
+    fontSize: 15,
+    color: '#4B5563', // Medium-dark gray
     lineHeight: 22,
   },
   buttonText: {
-    // Reused for "Set a new goal"
-    color: '#7666F9',
-    fontWeight: 'bold',
-    fontSize: 18, // Made it a bit larger
+    // For "Set a new goal"
+    color: '#4A5568', // Muted primary action color (dark slate gray)
+    fontWeight: '600',
+    fontSize: 16,
     textAlign: 'center',
-    padding: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   goalDescriptionText: {
-    fontSize: 18,
-    color: '#333',
+    fontSize: 16,
+    color: '#374151', // Dark gray
     textAlign: 'center',
-    marginBottom: 15,
-    fontWeight: '500',
+    marginBottom: 16,
+    fontWeight: 'normal', // Less emphasis
   },
   countdownCirclePlaceholder: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: 'rgba(118, 102, 249, 0.1)', // Light purple tint
+    width: 120, // Reduced size
+    height: 120,
+    borderRadius: 60, // Half of width/height
+    backgroundColor: '#F3F4F6', // Very light gray, neutral
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 5, // Reduced margin slightly
-    borderWidth: 2,
-    borderColor: '#7666F9',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB', // Light gray border
   },
   countdownText: {
-    fontSize: 30, // Larger font for countdown time
-    color: '#7666F9',
-    fontWeight: 'bold',
+    fontSize: 28, // Slightly reduced but still prominent
+    color: '#1F2937', // Darkest gray for clarity
+    fontWeight: '600', // Strong but not overly bold
   },
   reportButton: {
-    backgroundColor: '#7666F9',
-    borderRadius: 25,
+    backgroundColor: '#4A5568', // Dark slate gray for primary action
+    borderRadius: 8, // Standardized radius
     paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
     alignItems: 'center',
-    marginTop: 15, // Added margin top
+    marginTop: 16,
   },
   reportButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FFFFFF', // White text on dark button
+    fontSize: 15,
+    fontWeight: '600',
   },
   consistencyTracker: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center', // Center the tracker items
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 5,
-    marginBottom: 5,
+    marginTop: 8,
+    marginBottom: 8,
   },
   consistencyDay: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    margin: 2,
+    width: 16, // Smaller, more refined
+    height: 16,
+    borderRadius: 3, // Subtle rounding
+    margin: 3, // Consistent spacing
+  },
+  consistencyDayActive: {
+    // Style for active day background color
+    backgroundColor: '#6B7280', // Mid-gray for active state
+  },
+  consistencyDayInactive: {
+    // Style for inactive day background color
+    backgroundColor: '#E5E7EB', // Light gray for inactive state
   },
   smallText: {
     fontSize: 12,
-    color: '#777',
-    textAlign: 'center', // Centered this text as well
-    marginTop: 3,
+    color: '#6B7280', // Mid-gray for less emphasis
+    textAlign: 'center',
+    marginTop: 8, // Standardized margin
   },
   insightText: {
-    fontSize: 15,
-    color: '#444',
-    marginBottom: 8, // Increased margin slightly for better spacing
-    lineHeight: 20,
+    fontSize: 14, // Clean and readable
+    color: '#4B5563', // Medium-dark gray
+    marginBottom: 8,
+    lineHeight: 20, // Good readability
   },
   missedGoalText: {
-    // Style for the missed goals text to make it stand out
-    fontWeight: 'bold',
-    color: '#D32F2F', // A reddish color for emphasis
-    marginBottom: 10, // Add some space before the other insights
+    fontWeight: '600', // Clear emphasis
+    color: '#EF4444', // Tailwind red-500, for warnings
+    marginBottom: 12,
   },
   chatButton: {
-    backgroundColor: '#7666F9',
-    borderRadius: 25,
+    backgroundColor: '#4A5568', // Consistent with reportButton
+    borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 20, // More space before final action
   },
   chatButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#FFFFFF', // Consistent with reportButtonText
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
