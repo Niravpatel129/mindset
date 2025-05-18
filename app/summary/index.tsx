@@ -1,11 +1,10 @@
+import MiddleSection from '@/components/Summary/MiddleSection';
+import TopSection from '@/components/Summary/TopSection';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// It's good practice to have a dedicated header, similar to ChatHeader
-// We can create this later if needed: import { SummaryHeader } from '../components/summary/SummaryHeader';
 
 // Updated Placeholder data
 const summaryData = {
@@ -160,52 +159,10 @@ export default function SummaryScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <LinearGradient
-        colors={['#F9FAFB', '#F3F4F6']} // Updated to neutral grays
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
-
-      <ScrollView
-        style={[styles.content, { backgroundColor: 'transparent' }]}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 20, marginTop: 20 }}
-      >
-        {/* Current Goal & Check-in Section */}
-        <ThemedView style={[styles.sectionContainer, styles.goalSectionContainer]}>
-          <ThemedText style={styles.sectionTitle}>Current Goal</ThemedText>
-          {renderGoalCheckInSection()}
-        </ThemedView>
-
-        {/* Consistency Tracker Section */}
-        <ThemedView style={styles.sectionContainer}>
-          <ThemedText style={styles.sectionTitle}>Your Consistency</ThemedText>
-          {renderConsistencyTracker()}
-          <ThemedText style={styles.smallText}>Last 35 days</ThemedText>
-        </ThemedView>
-
-        {/* AI Insights Section - Now includes Missed Goals */}
-        <ThemedView style={styles.sectionContainer}>
-          <ThemedText style={styles.sectionTitle}>AI Insights & Tips</ThemedText>
-          {summaryData.missedGoals && summaryData.missedGoals.count > 0 && (
-            <ThemedText style={[styles.insightText, styles.missedGoalText]}>
-              {`❌ You missed ${summaryData.missedGoals.count} goal${
-                summaryData.missedGoals.count > 1 ? 's' : ''
-              }. Top reason: '${summaryData.missedGoals.topReason}'`}
-            </ThemedText>
-          )}
-          {summaryData.aiInsights.map((insight, index) => (
-            <ThemedText key={index} style={styles.insightText}>
-              • {insight}
-            </ThemedText>
-          ))}
-          <TouchableOpacity style={styles.chatButton} onPress={navigateToChat}>
-            <ThemedText style={styles.chatButtonText}>Talk to AI & Reflect</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-      </ScrollView>
-    </ThemedView>
+    <View>
+      <TopSection />
+      <MiddleSection />
+    </View>
   );
 }
 
