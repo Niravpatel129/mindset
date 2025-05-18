@@ -159,7 +159,7 @@ export default function SummaryScreen() {
   };
 
   return (
-    <View>
+    <View style={styles.container}>
       <TopSection />
       <MiddleSection />
     </View>
@@ -169,7 +169,7 @@ export default function SummaryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent', // To allow gradient to show through
+    backgroundColor: '#fff', // To allow gradient to show through
   },
   headerTitle: {
     fontSize: 24,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24, // Increased for more whitespace
   },
   sectionContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Slightly more opaque white cards
+    backgroundColor: '#fff', // To allow gradient to show through
     borderRadius: 12, // Standardized border radius
     padding: 16, // Standardized padding
     marginBottom: 24, // Standardized margin
