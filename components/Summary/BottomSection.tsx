@@ -11,6 +11,7 @@ interface InsightCardProps {
   color: string;
   placeholderColor: string;
   details: string;
+  icon: 'mind' | 'body' | 'spirit';
 }
 
 const insights: InsightCardProps[] = [
@@ -21,6 +22,7 @@ const insights: InsightCardProps[] = [
     placeholderColor: '#FFB6C1',
     details:
       'Details about Diversity and Inclusion. This is a longer paragraph to test how the text wraps and the card expands. We want to ensure that the layout remains clean and readable even with more content.',
+    icon: 'mind',
   },
   {
     id: '2',
@@ -29,6 +31,7 @@ const insights: InsightCardProps[] = [
     placeholderColor: '#AFEEEE',
     details:
       'Details about Arabic Mental Health. This section can also contain multiple sentences to properly simulate real-world content and test the accordion expansion.',
+    icon: 'body',
   },
   {
     id: '3',
@@ -37,6 +40,7 @@ const insights: InsightCardProps[] = [
     placeholderColor: '#D8BFD8',
     details:
       'Details about The Ability to Defend Your Own. Let us add some more text here to see how the card handles it. The goal is a smooth expansion and clear presentation of information.',
+    icon: 'spirit',
   },
 ];
 
@@ -68,12 +72,15 @@ export default function BottomSection() {
               <View
                 style={[styles.imagePlaceholder, { backgroundColor: insight.placeholderColor }]}
               />
-              <Text
-                style={styles.cardTitle}
-                numberOfLines={expandedId === insight.id ? undefined : 2}
-              >
-                {insight.title}
-              </Text>
+              <View style={styles.titleContainer}>
+                <Text
+                  style={styles.cardTitle}
+                  numberOfLines={expandedId === insight.id ? undefined : 2}
+                >
+                  {insight.title}
+                </Text>
+                <Text style={styles.iconText}>{insight.icon.toUpperCase()}</Text>
+              </View>
               <View style={styles.chevronContainer}>
                 <Text style={styles.chevronIcon}>{expandedId === insight.id ? '▲' : '▼'}</Text>
               </View>
@@ -138,13 +145,22 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginRight: 15,
   },
-  cardTitle: {
+  titleContainer: {
     flex: 1,
+    flexDirection: 'column',
+    marginRight: 10,
+  },
+  cardTitle: {
     fontSize: 16,
     fontWeight: '500',
     color: '#333',
     fontFamily: 'System',
-    marginRight: 10,
+  },
+  iconText: {
+    fontSize: 10,
+    color: '#555',
+    fontFamily: 'System',
+    marginTop: 2,
   },
   chevronContainer: {
     width: 30,
