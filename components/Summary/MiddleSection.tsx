@@ -108,8 +108,6 @@ export default function MiddleSection({
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.dateText}>{displayedDateString}</Text>
-        {/* Placeholder for Calendar Icon */}
-        <View style={styles.calendarIconPlaceholder} onTouchEnd={onPressCalendarIcon}></View>
       </View>
 
       <View style={styles.dayLabelsContainer}>
@@ -165,9 +163,7 @@ export default function MiddleSection({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -180,15 +176,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
   },
-  calendarIconPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF', // White background for icon circle
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Add shadow or elevation if needed
-  },
+
   calendarIconText: {
     fontSize: 20, // Adjust as needed for emoji or icon
   },
@@ -204,9 +192,7 @@ const styles = StyleSheet.create({
     flex: 1, // Added
     textAlign: 'center', // Kept
   },
-  gridContainer: {
-    // alignItems: 'center', // Rows will take full width
-  },
+  gridContainer: {},
   weekRow: {
     flexDirection: 'row',
     // justifyContent: 'space-between', // Removed
