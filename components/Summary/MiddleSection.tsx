@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 // Define the structure for each day cell's data
 interface DayCellData {
   day: number | null; // Day number, or null for empty cells
-  state: 'normal' | 'selected' | 'patterned' | 'empty';
+  state: 'normal' | 'selected' | 'patterned' | 'empty' | 'past';
 }
 
 interface MiddleSectionProps {
@@ -39,23 +39,34 @@ function chunkArray(array: DayCellData[], size: number): DayCellData[][] {
 function generateDynamicCalendarData(referenceDate: Date): DayCellData[] {
   const data: DayCellData[] = [];
   const startDate = new Date(referenceDate);
-  // Set startDate to 3 days before the referenceDate, so referenceDate becomes the 4th day (index 3)
-  startDate.setDate(referenceDate.getDate() - 3);
+  startDate.setDate(referenceDate.getDate() - 3); // Set startDate to 3 days before the referenceDate
+
+  const today = new Date(); // Get current date for comparison
+  // Normalize 'today' to the start of the day for accurate comparison
+  today.setHours(0, 0, 0, 0);
 
   for (let i = 0; i < WEEKS_TO_DISPLAY * DAYS_IN_WEEK; i++) {
     const currentDateIter = new Date(startDate);
     currentDateIter.setDate(startDate.getDate() + i);
+    // Normalize 'currentDateIter' to the start of the day
+    currentDateIter.setHours(0, 0, 0, 0);
+
     const dayNumber = currentDateIter.getDate();
     let state: DayCellData['state'] = 'normal';
 
-    // Check if currentDateIter is the same day as referenceDate
+    // Check if currentDateIter is the same day as referenceDate (e.g., today if referenceDate is today)
     if (
       currentDateIter.getFullYear() === referenceDate.getFullYear() &&
       currentDateIter.getMonth() === referenceDate.getMonth() &&
       currentDateIter.getDate() === referenceDate.getDate()
     ) {
       state = 'selected';
+    } else if (currentDateIter < today) {
+      // Check if the date is in the past
+      state = 'past';
     }
+    // else, state remains 'normal' or could be 'patterned' based on other logic if added later
+
     data.push({ day: dayNumber, state });
   }
   return data;
@@ -131,6 +142,9 @@ export default function MiddleSection({
               } else if (cellData.state === 'patterned') {
                 circleStyle = styles.patternedCircle;
                 // textStyle remains styles.normalCircleText for patterned
+              } else if (cellData.state === 'past') {
+                circleStyle = styles.pastCircle;
+                textStyle = styles.pastCircleText; // Or normalCircleText if no specific text style for past
               }
 
               return (
@@ -196,7 +210,7 @@ const styles = StyleSheet.create({
   weekRow: {
     flexDirection: 'row',
     // justifyContent: 'space-between', // Removed
-    marginBottom: 10, // Space between weeks
+    marginBottom: 10, // Space between weeksthz
     width: '100%',
   },
   circle: {
@@ -238,6 +252,15 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0', // Subtle border
     borderWidth: 1, // Ensured borderWidth is present
     // Striped pattern would be an advanced addition here (e.g. using an overlay or SVG)
+  },
+  pastCircle: {
+    backgroundColor: '#c8dcdb', // Color for past days
+    borderWidth: 1,
+    borderColor: '#b0cac9', // Slightly darker border for past days
+  },
+  pastCircleText: {
+    fontSize: 16,
+    color: '#506665', // Darker text color for readability on the past day color
   },
   // Removed old styles: title, progress
 });
