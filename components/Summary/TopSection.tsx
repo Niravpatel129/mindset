@@ -15,13 +15,13 @@ export default function TopSection() {
         <Text style={styles.greetingText}>Hello, {userName} 👋</Text>
       </View>
       <Text style={styles.mainQuestionText}>
-        How do you feel about
+        Did you go to the gym
         <br />
-        your current emotions?
+        checkin in<b> 14h.</b>
       </Text>
 
       <TouchableOpacity style={styles.reflectionButton}>
-        <Text style={styles.reflectionButtonText}>Your reflection..</Text>
+        <Text style={styles.reflectionButtonText}>Report now.</Text>
         <Ionicons name='arrow-forward' size={14} color='#241712' />
       </TouchableOpacity>
     </View>

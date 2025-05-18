@@ -105,6 +105,9 @@ export default function ChatScreen() {
             addMessageToHistory('assistant', nextAiMessageText);
 
             const collectedInfo = response.data.collectedInformation;
+            const nextGoalDisplay = response.data.nextGoalDisplay;
+            const nextGoalTiming = response.data.nextGoalTiming;
+
             if (
               collectedInfo &&
               collectedInfo.outcomeProvided &&
@@ -116,6 +119,16 @@ export default function ChatScreen() {
               setTimeout(() => {
                 router.push('/summary');
               }, 3000); // 3-second delay
+
+              await newRequest.post('/chat/set-collected-information', {
+                collectedInformation: collectedInfo,
+                nextGoalDisplay: nextGoalDisplay,
+                nextGoalTiming: nextGoalTiming,
+              });
+
+              await newRequest.post('/chat/store-chat-history', {
+                chatHistory: updatedHistory,
+              });
             } else if (
               // Keep existing alert for nextGoalProvided only
               response.data.collectedInformation &&
