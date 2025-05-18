@@ -2,6 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -25,9 +26,11 @@ export default function ChatScreen() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
+  const [showChatControls, setShowChatControls] = useState(true);
 
   const { isRecording, transcribedText, startRecording, stopRecording } = useVoiceRecognition();
   const recordingStartTime = useRef<number | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchInitialState = async () => {
@@ -101,7 +104,20 @@ export default function ChatScreen() {
                 : 'I received your message. How can I help further?';
             addMessageToHistory('assistant', nextAiMessageText);
 
+            const collectedInfo = response.data.collectedInformation;
             if (
+              collectedInfo &&
+              collectedInfo.outcomeProvided &&
+              collectedInfo.whyProvided &&
+              collectedInfo.nextGoalProvided &&
+              collectedInfo.nextGoalTimingProvided
+            ) {
+              setShowChatControls(false);
+              setTimeout(() => {
+                router.push('/summary');
+              }, 3000); // 3-second delay
+            } else if (
+              // Keep existing alert for nextGoalProvided only
               response.data.collectedInformation &&
               response.data.collectedInformation.nextGoalProvided
             ) {
@@ -197,12 +213,14 @@ export default function ChatScreen() {
           </Animated.View>
         ) : null}
 
-        <ChatControls
-          isRecording={isRecording}
-          isProcessing={isProcessing}
-          onMicPress={handleMicPress}
-          bottomInset={insets.bottom}
-        />
+        {showChatControls && (
+          <ChatControls
+            isRecording={isRecording}
+            isProcessing={isProcessing}
+            onMicPress={handleMicPress}
+            bottomInset={insets.bottom}
+          />
+        )}
       </ThemedView>
     </ThemedView>
   );
